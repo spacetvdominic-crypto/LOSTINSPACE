@@ -1,67 +1,40 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
-    <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Space TV - Dashboard</title>
     <style>
-        body { font-family: 'Segoe UI', sans-serif; background: #f0f2f5; margin: 0; padding: 0; }
-        .header { background: #0066cc; color: white; padding: 20px; text-align: center; }
-        .container { padding: 15px; max-width: 600px; margin: auto; }
-        .job-card { background: white; margin-bottom: 15px; padding: 15px; border-radius: 10px; border-left: 6px solid #0066cc; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
-        .job-card h3 { margin: 0 0 10px 0; color: #333; }
-        .job-card p { margin: 5px 0; font-size: 0.9rem; color: #666; }
-        .btn-work { display: block; background: #0066cc; color: white; text-align: center; padding: 12px; border-radius: 5px; text-decoration: none; margin-top: 10px; font-weight: bold; }
-        .empty-state { text-align: center; margin-top: 50px; color: #888; }
+        body { font-family: sans-serif; background: #eee; margin: 0; }
+        .h { background: #0066cc; color: white; padding: 15px; text-align: center; }
+        .card { background: white; margin: 10px; padding: 15px; border-radius: 5px; border-left: 5px solid #0066cc; }
+        .btn { display: block; background: #0066cc; color: white; text-align: center; padding: 12px; text-decoration: none; margin-top: 10px; border-radius: 5px; font-weight: bold; border:none; width:100%; cursor:pointer;}
+        a.tel-link { color: #0066cc; text-decoration: none; font-weight: bold; }
     </style>
 </head>
 <body>
-
-<div class="header">
-    <img src="/logo.png" alt="Space TV" style="width: 100px; filter: brightness(0) invert(1);">
-    <h2>Pending Jobs</h2>
-</div>
-
-<div class="container" id="job-container">
-    <p class="empty-state">Searching for jobs...</p>
-</div>
-
-<script>
-    async function fetchJobs() {
-        const container = document.getElementById('job-container');
-        try {
-            const response = await fetch('/api/jobs');
-            const jobs = await response.json();
-
-            if (jobs.length === 0) {
-                container.innerHTML = '<div class="empty-state">No pending jobs found. Well done!</div>';
-                return;
-            }
-
-            container.innerHTML = ''; // Clear "Searching..." text
-            
-            jobs.forEach(job => {
-                const card = `
-                    <div class="job-card">
-                        <h3>${job.customer}</h3>
-                        <p><strong>Location:</strong> ${job.loc || job.location}</p>
-                        <p><strong>Problem:</strong> ${job.prob || job.problem}</p>
-                        <p><strong>Type:</strong> ${job.type}</p>
-                        <a href="/work-job?rowId=${job.rowId}&name=${encodeURIComponent(job.customer)}&loc=${encodeURIComponent(job.loc || job.location)}&prob=${encodeURIComponent(job.prob || job.problem)}" class="btn-work">START JOB</a>
-                    </div>
-                `;
-                container.insertAdjacentHTML('beforeend', card);
-            });
-
-        } catch (err) {
-            console.error("Dashboard Error:", err);
-            container.innerHTML = '<div class="empty-state" style="color:red;">Error loading jobs. Check internet or Script URL.</div>';
+    <div class="h"><h2>Space TV Pending</h2></div>
+    <div id="list"></div>
+    <script>
+        async function startJob(id, name, tel, loc, prob) {
+            await fetch(`/start-job?rowId=${id}`);
+            window.location.href = `/work-job?rowId=${id}&name=${name}&tel=${tel}&loc=${loc}&prob=${prob}`;
         }
-    }
-
-    // Run on page load
-    fetchJobs();
-</script>
-
+        async function load() {
+            const res = await fetch('/api/jobs');
+            const jobs = await res.json();
+            const list = document.getElementById('list');
+            list.innerHTML = jobs.length ? '' : '<p style="text-align:center">No Pending Jobs</p>';
+            jobs.forEach(j => {
+                list.innerHTML += `<div class="card">
+                    <h3>${j.customer}</h3>
+                    <p><strong>Tel:</strong> <a href="tel:${j.tel}" class="tel-link">${j.tel}</a></p>
+                    <p><strong>Loc:</strong> ${j.loc}</p>
+                    <p><strong>Type:</strong> ${j.type}</p>
+                    <p><i>${j.prob}</i></p>
+                    <button onclick="startJob('${j.rowId}', '${encodeURIComponent(j.customer)}', '${encodeURIComponent(j.tel)}', '${encodeURIComponent(j.loc)}', '${encodeURIComponent(j.prob)}')" class="btn">START JOB</button>
+                </div>`;
+            });
+        }
+        load();
+    </script>
 </body>
 </html>
