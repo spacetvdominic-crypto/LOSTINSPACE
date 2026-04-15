@@ -1,5 +1,67 @@
-<style>
-    .header { background: #0066cc; color: white; padding: 15px; text-align: center; }
-    .job-card { border-left: 5px solid #0066cc; margin: 10px; padding: 15px; background: white; border-radius: 8px; }
-    .btn-done { background: #28a745; color: white; padding: 10px; border-radius: 5px; text-decoration: none; }
-</style>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Space TV - Dashboard</title>
+    <style>
+        body { font-family: 'Segoe UI', sans-serif; background: #f0f2f5; margin: 0; padding: 0; }
+        .header { background: #0066cc; color: white; padding: 20px; text-align: center; }
+        .container { padding: 15px; max-width: 600px; margin: auto; }
+        .job-card { background: white; margin-bottom: 15px; padding: 15px; border-radius: 10px; border-left: 6px solid #0066cc; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
+        .job-card h3 { margin: 0 0 10px 0; color: #333; }
+        .job-card p { margin: 5px 0; font-size: 0.9rem; color: #666; }
+        .btn-work { display: block; background: #0066cc; color: white; text-align: center; padding: 12px; border-radius: 5px; text-decoration: none; margin-top: 10px; font-weight: bold; }
+        .empty-state { text-align: center; margin-top: 50px; color: #888; }
+    </style>
+</head>
+<body>
+
+<div class="header">
+    <img src="/logo.png" alt="Space TV" style="width: 100px; filter: brightness(0) invert(1);">
+    <h2>Pending Jobs</h2>
+</div>
+
+<div class="container" id="job-container">
+    <p class="empty-state">Searching for jobs...</p>
+</div>
+
+<script>
+    async function fetchJobs() {
+        const container = document.getElementById('job-container');
+        try {
+            const response = await fetch('/api/jobs');
+            const jobs = await response.json();
+
+            if (jobs.length === 0) {
+                container.innerHTML = '<div class="empty-state">No pending jobs found. Well done!</div>';
+                return;
+            }
+
+            container.innerHTML = ''; // Clear "Searching..." text
+            
+            jobs.forEach(job => {
+                const card = `
+                    <div class="job-card">
+                        <h3>${job.customer}</h3>
+                        <p><strong>Location:</strong> ${job.loc || job.location}</p>
+                        <p><strong>Problem:</strong> ${job.prob || job.problem}</p>
+                        <p><strong>Type:</strong> ${job.type}</p>
+                        <a href="/work-job?rowId=${job.rowId}&name=${encodeURIComponent(job.customer)}&loc=${encodeURIComponent(job.loc || job.location)}&prob=${encodeURIComponent(job.prob || job.problem)}" class="btn-work">START JOB</a>
+                    </div>
+                `;
+                container.insertAdjacentHTML('beforeend', card);
+            });
+
+        } catch (err) {
+            console.error("Dashboard Error:", err);
+            container.innerHTML = '<div class="empty-state" style="color:red;">Error loading jobs. Check internet or Script URL.</div>';
+        }
+    }
+
+    // Run on page load
+    fetchJobs();
+</script>
+
+</body>
+</html>
