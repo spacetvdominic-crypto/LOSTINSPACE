@@ -34,10 +34,12 @@ app.get('/dashboard', (req, res) => {
 // 4. DATA API: FETCH PENDING JOBS
 app.get('/api/jobs', async (req, res) => {
     try {
+        // This MUST point to your Google Script URL
         const response = await axios.get(`${GOOGLE_SCRIPT_URL}?action=getJobs`);
-        res.json(response.data);
+        res.json(response.data); 
     } catch (error) {
-        res.status(500).json({ error: "Could not fetch jobs" });
+        console.error("API Error:", error.message);
+        res.status(500).json([]); // Send empty array so dashboard doesn't crash
     }
 });
 
