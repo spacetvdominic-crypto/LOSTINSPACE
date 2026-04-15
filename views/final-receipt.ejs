@@ -1,53 +1,33 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Space TV - Official Receipt</title>
     <style>
-        body { font-family: 'Courier New', monospace; background: #555; padding: 20px; margin: 0; }
-        .receipt { background: white; max-width: 400px; margin: auto; padding: 30px; border-radius: 2px; box-shadow: 0 0 10px rgba(0,0,0,0.5); }
-        .logo { width: 120px; display: block; margin: 0 auto 10px; }
-        .header { text-align: center; border-bottom: 2px dashed #000; padding-bottom: 10px; margin-bottom: 20px; }
-        .row { display: flex; justify-content: space-between; margin-bottom: 10px; font-size: 0.9rem; }
-        .total { font-size: 1.5rem; font-weight: bold; text-align: center; border-top: 2px solid #000; padding-top: 15px; margin-top: 20px; }
-        .slogan { text-align: center; font-size: 0.7rem; color: #777; margin-top: 30px; font-style: italic; }
-        .btn-print { background: #0066cc; color: white; border: none; padding: 10px; width: 100%; border-radius: 5px; margin-top: 20px; cursor: pointer; }
-        @media print { .btn-print { display: none; } }
+        body { background:#555; display:flex; justify-content:center; padding:20px; font-family:monospace; }
+        .r { background:white; width:300px; padding:20px; text-align:center; }
+        .row { display:flex; justify-content:space-between; margin:10px 0; border-bottom:1px dashed #eee; }
     </style>
 </head>
 <body>
-
-<div class="receipt">
-    <div class="header">
-        <img src="/logo.png" class="logo">
-        <p><strong>SPACE TV SERVICE RECEIPT</strong></p>
-        <p id="rDate"></p>
+    <div class="r">
+        <img src="/logo.png" style="width:100px;">
+        <h3>SPACE TV RECEIPT</h3>
+        <div class="row"><span>Date:</span><span id="d"></span></div>
+        <div class="row"><span>Customer:</span><span id="n"></span></div>
+        <div class="row"><span>Staff:</span><span id="s"></span></div>
+        <div style="text-align:left; margin:15px 0;"><strong>Work:</strong><br><span id="rem"></span></div>
+        <h2 style="border-top:2px solid #000; padding-top:10px;">GHS <span id="amt"></span></h2>
+        <p><i>"Where Excellent Performance Matters"</i></p>
+        <button onclick="window.print()" style="width:100%; padding:10px; margin-top:10px;">Print/PDF</button>
     </div>
-
-    <div class="row"><span>Customer:</span> <span id="rName"></span></div>
-    <div class="row"><span>Installer:</span> <span id="rStaff"></span></div>
-    <div class="divider" style="border-bottom: 1px solid #eee; margin: 10px 0;"></div>
-    <div class="row"><span style="font-weight:bold;">Work Done:</span></div>
-    <p id="rRemarks" style="font-size: 0.85rem; line-height: 1.4;"></p>
-
-    <div class="total">
-        TOTAL GHS: <span id="rAmount"></span>
-    </div>
-
-    <div class="slogan">"Where Excellent Performance Matters"</div>
-    
-    <button class="btn-print" onclick="window.print()">Print / Save PDF</button>
-</div>
-
-<script>
-    const data = JSON.parse(localStorage.getItem('tempReceipt'));
-    document.getElementById('rName').innerText = data.name;
-    document.getElementById('rStaff').innerText = data.installer;
-    document.getElementById('rRemarks').innerText = data.remarks;
-    document.getElementById('rAmount').innerText = data.amount;
-    document.getElementById('rDate').innerText = new Date().toLocaleDateString();
-</script>
-
+    <script>
+        const data = JSON.parse(localStorage.getItem('tempReceipt'));
+        if(data){
+            d.innerText = new Date().toLocaleDateString();
+            n.innerText = data.name;
+            s.innerText = data.installer;
+            rem.innerText = data.remarks;
+            amt.innerText = data.amount;
+        }
+    </script>
 </body>
 </html>
