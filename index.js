@@ -4,7 +4,7 @@ const path = require('path');
 const app = express();
 
 // --- CONFIGURATION ---
-const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyieD_rmwokNuQ-nJcl9iBKZuGW-fFE_vC_e64941Zi3PuJPFTjhUucFa_jMNS5AGY/exec";
+const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwJAXrZ3dCNWcO14h93r9Z7SvGhEu5YDtr06n6HE9YsaCdLaZf2Z_QvZcSxnaZJ/exec";
 
 app.set('view engine', 'ejs');
 app.use(express.static('public'));
