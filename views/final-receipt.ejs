@@ -1,24 +1,45 @@
 <!DOCTYPE html>
 <html>
 <head>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <style>
-        body { background:#555; display:flex; justify-content:center; padding:20px; font-family:monospace; }
-        .r { background:white; width:300px; padding:20px; text-align:center; }
-        .row { display:flex; justify-content:space-between; margin:10px 0; border-bottom:1px dashed #eee; }
+        body { background:#555; display:flex; flex-direction:column; align-items:center; padding:20px; font-family:monospace; }
+        .r { background:white; width:100%; max-width:350px; padding:25px; box-sizing: border-box; position: relative; }
+        .row { display:flex; justify-content:space-between; margin:10px 0; border-bottom:1px dashed #ddd; padding-bottom: 5px; }
+        .momo-box { background: #f0f7ff; border: 1px solid #0066cc; padding: 10px; margin: 20px 0; font-size: 0.8rem; text-align: center; }
+        .btn-group { width: 100%; max-width: 350px; margin-top: 20px; }
+        button { width: 100%; padding: 15px; margin-bottom: 10px; border-radius: 5px; border: none; font-weight: bold; cursor: pointer; }
+        .print-btn { background: #333; color: white; }
+        .back-btn { background: #0066cc; color: white; }
     </style>
 </head>
 <body>
     <div class="r">
-        <img src="/logo.png" style="width:100px;">
-        <h3>SPACE TV RECEIPT</h3>
-        <div class="row"><span>Date:</span><span id="d"></span></div>
-        <div class="row"><span>Customer:</span><span id="n"></span></div>
-        <div class="row"><span>Staff:</span><span id="s"></span></div>
-        <div style="text-align:left; margin:15px 0;"><strong>Work:</strong><br><span id="rem"></span></div>
-        <h2 style="border-top:2px solid #000; padding-top:10px;">GHS <span id="amt"></span></h2>
-        <p><i>"Where Excellent Performance Matters"</i></p>
-        <button onclick="window.print()" style="width:100%; padding:10px; margin-top:10px;">Print/PDF</button>
+        <img src="/logo.png" style="width:120px; display:block; margin: 0 auto 10px;">
+        <h3 style="text-align:center; margin-bottom:5px;">OFFICIAL RECEIPT</h3>
+        <p style="text-align:center; font-size:0.75rem; margin:0;">0243 326 023 / 0544 913 868</p>
+        <div style="margin-top:20px;">
+            <div class="row"><span>Date:</span><span id="d"></span></div>
+            <div class="row"><span>Customer:</span><span id="n"></span></div>
+            <div class="row"><span>Installer:</span><span id="s"></span></div>
+            <div style="margin:15px 0; font-size:0.9rem;">
+                <strong>Remarks:</strong> <span id="rem"></span><br>
+                <strong>Notes:</strong> <span id="not"></span>
+            </div>
+            <h2 style="text-align:center; border-top:2px solid #000; padding-top:10px; margin-top:20px;">GHS <span id="amt"></span></h2>
+        </div>
+        <div class="momo-box">
+            <strong>PAYMENT NOTICE:</strong><br>
+            Kindly make all payments via Company MoMo for security and verification.
+        </div>
+        <p style="text-align:center; font-style:italic; font-size:0.7rem;">"Where Excellent Performance Matters"</p>
     </div>
+
+    <div class="btn-group">
+        <button class="print-btn" onclick="window.print()">PRINT / SAVE PDF</button>
+        <button class="back-btn" onclick="window.location.href='/dashboard'">BACK TO PENDING JOBS</button>
+    </div>
+
     <script>
         const data = JSON.parse(localStorage.getItem('tempReceipt'));
         if(data){
@@ -26,7 +47,8 @@
             n.innerText = data.name;
             s.innerText = data.installer;
             rem.innerText = data.remarks;
-            amt.innerText = data.amount;
+            not.innerText = data.notes || "None";
+            amt.innerText = parseFloat(data.amount).toFixed(2);
         }
     </script>
 </body>
