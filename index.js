@@ -1,66 +1,35 @@
 const express = require('express');
 const axios = require('axios');
-const path = require('path');
 const app = express();
 
-// --- CONFIGURATION ---
 const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwJAXrZ3dCNWcO14h93r9Z7SvGhEu5YDtr06n6HE9YsaCdLaZf2Z_QvZcSxnaZJ/exec";
 
 app.set('view engine', 'ejs');
 app.use(express.static('public'));
 app.use(express.json());
 
-// 1. LOGIN PAGE (The first thing they see)
-app.get('/', (req, res) => {
-    res.render('login');
-});
-
-// 2. LOGIN LOGIC (Checks against Sheet 2)
+app.get('/', (req, res) => res.render('login'));
 app.get('/login', async (req, res) => {
-    try {
-        const { user, pass } = req.query;
-        const response = await axios.get(`${GOOGLE_SCRIPT_URL}?action=login&user=${user}&pass=${pass}`);
-        res.send(response.data); // Returns "success" or "invalid"
-    } catch (error) {
-        res.status(500).send("Login Error");
-    }
+    const { user, pass } = req.query;
+    const resp = await axios.get(`${GOOGLE_SCRIPT_URL}?action=login&user=${user}&pass=${pass}`);
+    res.send(resp.data);
 });
-
-// 3. DASHBOARD (Shows pending jobs)
-app.get('/dashboard', (req, res) => {
-    res.render('dashboard');
-});
-
-// 4. DATA API: FETCH PENDING JOBS
+app.get('/dashboard', (req, res) => res.render('dashboard'));
 app.get('/api/jobs', async (req, res) => {
-    try {
-        // This MUST point to your Google Script URL
-        const response = await axios.get(`${GOOGLE_SCRIPT_URL}?action=getJobs`);
-        res.json(response.data); 
-    } catch (error) {
-        console.error("API Error:", error.message);
-        res.status(500).json([]); // Send empty array so dashboard doesn't crash
-    }
+    const resp = await axios.get(`${GOOGLE_SCRIPT_URL}?action=getJobs`);
+    res.json(resp.data);
 });
-
-// 5. WORK JOB PAGE (The action screen)
-app.get('/work-job', (req, res) => {
-    res.render('work-job');
+app.get('/start-job', async (req, res) => {
+    const { rowId } = req.query;
+    await axios.get(`${GOOGLE_SCRIPT_URL}?action=startJob&rowId=${rowId}`);
+    res.send("ok");
 });
-
-// 6. RECEIPT FLIP & FINAL RECEIPT
+app.get('/work-job', (req, res) => res.render('work-job'));
 app.get('/receipt-flip', (req, res) => res.render('receipt-flip'));
 app.get('/final-receipt', (req, res) => res.render('final-receipt'));
-
-// 7. SUBMIT UPDATE (Updates Sheet 1)
 app.post('/submit-update', async (req, res) => {
-    try {
-        const response = await axios.post(GOOGLE_SCRIPT_URL, req.body);
-        res.send("Updated");
-    } catch (error) {
-        res.status(500).send("Update Failed");
-    }
+    const resp = await axios.post(GOOGLE_SCRIPT_URL, req.body);
+    res.send(resp.data);
 });
 
-const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => console.log(`Space TV Portal running on port ${PORT}`));
+app.listen(process.env.PORT || 3000);
