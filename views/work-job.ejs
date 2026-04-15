@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Job Action - Space TV</title>
+    <style>
+        :root { --space-blue: #0066cc; }
+        body { font-family: 'Segoe UI', sans-serif; background: #f4f7f6; margin: 0; padding: 20px; }
+        .card { background: white; padding: 20px; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
+        .customer-info { border-bottom: 2px solid #eee; margin-bottom: 20px; padding-bottom: 10px; }
+        
+        label { font-weight: bold; display: block; margin-top: 15px; color: #555; }
+        select, input, textarea { width: 100%; padding: 12px; margin-top: 5px; border: 1px solid #ddd; border-radius: 8px; box-sizing: border-box; font-size: 1rem; }
+        
+        .btn-update { background: var(--space-blue); color: white; border: none; padding: 15px; width: 100%; border-radius: 8px; font-weight: bold; margin-top: 20px; cursor: pointer; }
+        .price-locked { background: #eee; color: #888; cursor: not-allowed; }
+    </style>
+</head>
+<body>
+
+<div class="card">
+    <div class="customer-info">
+        <h2 id="custName">Loading...</h2>
+        <p id="custLoc" style="color: #666;"></p>
+        <p id="custProb" style="font-style: italic;"></p>
+    </div>
+
+    <form id="updateForm">
+        <label>Job Status</label>
+        <select id="status" onchange="checkStatus()">
+            <option value="In Progress">In Progress</option>
+            <option value="Done">Done (Completed)</option>
+            <option value="Reschedule">Reschedule</option>
+            <option value="Cancel">Cancel (Customer Request)</option>
+            <option value="Customer No Pick">Customer Did Not Pick Up</option>
+            <option value="Return Job">Return Job (No Pay)</option>
+            <option value="Faulty Decoder">Faulty Decoder (Needs New One)</option>
+        </select>
+
+        <label>Final Amount (GHS)</label>
+        <input type="number" id="amount" placeholder="Enter Price">
+
+        <label>Technical Remarks (What was done?)</label>
+        <textarea id="remarks" rows="3" placeholder="e.g., Realigned dish, changed LNB"></textarea>
+
+        <label>Internal Notes (Optional)</label>
+        <input type="text" id="notes" placeholder="e.g., Customer needs a new remote">
+
+        <button type="submit" class="btn-update">SUBMIT UPDATE</button>
+    </form>
+</div>
+
+<script>
+    function checkStatus() {
+        const status = document.getElementById('status').value;
+        const amountField = document.getElementById('amount');
+        
+        // LOGIC: No pay for Return Jobs or No-Picks
+        if (status === "Return Job" || status === "Customer No Pick" || status === "Cancel") {
+            amountField.value = 0;
+            amountField.classList.add('price-locked');
+            amountField.readOnly = true;
+        } else {
+            amountField.classList.remove('price-locked');
+            amountField.readOnly = false;
+        }
+    }
+
+    document.getElementById('updateForm').onsubmit = async (e) => {
+        e.preventDefault();
+        const status = document.getElementById('status').value;
+        
+        // If "Done", redirect to the Customer Receipt Flip
+        if (status === "Done") {
+            // Save data to localStorage first so the receipt can read it
+            const receiptData = {
+                name: document.getElementById('custName').innerText,
+                amount: document.getElementById('amount').value,
+                remarks: document.getElementById('remarks').value,
+                installer: localStorage.getItem('installerName')
+            };
+            localStorage.setItem('tempReceipt', JSON.stringify(receiptData));
+            window.location.href = '/receipt-flip';
+        } else {
+            // Otherwise, just update the sheet and go back to dashboard
+            await submitToSheet();
+            window.location.href = '/dashboard';
+        }
+    };
+</script>
+
+</body>
+</html>
