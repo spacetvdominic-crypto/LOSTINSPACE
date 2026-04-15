@@ -3,30 +3,47 @@
 <head>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <style>
-        body { font-family: sans-serif; padding: 20px; }
-        label { font-weight: bold; display: block; margin-top: 15px; }
-        input, select, textarea { width: 100%; padding: 10px; margin-top: 5px; box-sizing: border-box; }
-        .sub { background: #0066cc; color: white; border: none; padding: 15px; width: 100%; margin-top: 20px; font-weight: bold; }
+        body { font-family: sans-serif; padding: 20px; background: #f9f9f9; }
+        .box { background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
+        label { font-weight: bold; display: block; margin-top: 15px; color: #333; }
+        input, select, textarea { width: 100%; padding: 12px; margin-top: 5px; box-sizing: border-box; border: 1px solid #ccc; border-radius: 4px; }
+        .sub { background: #0066cc; color: white; border: none; padding: 15px; width: 100%; margin-top: 25px; font-weight: bold; border-radius: 5px; cursor: pointer; }
     </style>
 </head>
 <body>
-    <h2 id="cN"></h2>
-    <form id="f">
-        <label>Status</label>
-        <select id="s">
-            <option value="In Progress">In Progress</option>
-            <option value="Done">Done</option>
-            <option value="Return Job">Return Job (No Pay)</option>
-        </select>
-        <label>Amount (GHS)</label>
-        <input type="number" id="a" value="0">
-        <label>Remarks</label>
-        <textarea id="r"></textarea>
-        <button type="submit" class="sub">SUBMIT</button>
-    </form>
+    <div class="box">
+        <h2 id="cN" style="color:#0066cc; margin-top:0;"></h2>
+        <p id="cT" style="font-weight:bold;"></p>
+        <form id="f">
+            <label>Current Status</label>
+            <select id="s">
+                <option value="In Progress">In Progress</option>
+                <option value="Done">Done</option>
+                <option value="Cancel">Cancel Job</option>
+            </select>
+
+            <label>Remarks (Select One)</label>
+            <select id="r">
+                <option value="Completed Successfully">Completed Successfully</option>
+                <option value="Return Job">Return Job</option>
+                <option value="Already working">Already working</option>
+                <option value="Customer did not pick">Customer did not pick</option>
+                <option value="Faulty decoder">Faulty decoder</option>
+            </select>
+
+            <label>Additional Notes</label>
+            <textarea id="n" rows="3" placeholder="Enter any extra details here..."></textarea>
+
+            <label>Amount Charged (GHS)</label>
+            <input type="number" id="a" value="0">
+
+            <button type="submit" class="sub">SUBMIT UPDATE</button>
+        </form>
+    </div>
     <script>
         const params = new URLSearchParams(window.location.search);
         document.getElementById('cN').innerText = params.get('name');
+        document.getElementById('cT').innerText = "Tel: " + params.get('tel');
 
         document.getElementById('f').onsubmit = async (e) => {
             e.preventDefault();
@@ -36,8 +53,8 @@
                 status: s.value,
                 amount: a.value,
                 remarks: r.value,
-                installer: localStorage.getItem('installerName'),
-                notes: ""
+                notes: n.value,
+                installer: localStorage.getItem('installerName')
             };
             localStorage.setItem('tempReceipt', JSON.stringify(data));
             await fetch('/submit-update', {
