@@ -24,12 +24,13 @@
             const list = document.getElementById('list');
             list.innerHTML = jobs.length ? '' : '<p style="text-align:center">No Pending Jobs</p>';
         jobs.forEach(j => {
+                // We use j.loc and j.prob because that's what we named them in the Apps Script above
                 list.innerHTML += `<div class="card">
                     <h3>${j.customer || 'No Name'}</h3>
                     <p><strong>Tel:</strong> <a href="tel:${j.tel}" class="tel-link">${j.tel || 'No Number'}</a></p>
                     <p><strong>Loc:</strong> ${j.loc || 'No Location'}</p>
                     <p><strong>Type:</strong> ${j.type || 'N/A'}</p>
-                    <p><i>${j.prob || 'No Problem Stated'}</i></p>
+                    <p><strong>Problem:</strong> <i>${j.prob || 'No Problem Stated'}</i></p>
                     <button onclick="startJob('${j.rowId}', '${encodeURIComponent(j.customer)}', '${encodeURIComponent(j.tel)}', '${encodeURIComponent(j.loc)}', '${encodeURIComponent(j.prob)}')" class="btn">START JOB</button>
                 </div>`;
             });
