@@ -4,75 +4,111 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Space TV Portal</title>
     <style>
-        body { font-family: sans-serif; background: #eee; margin: 0; padding-bottom: 50px; }
-        .h { background: #0066cc; color: white; padding: 15px; text-align: center; position: sticky; top: 0; z-index: 100; box-shadow: 0 2px 5px rgba(0,0,0,0.2); }
-        .container { padding: 10px; }
-        .section-title { font-size: 1.1rem; font-weight: bold; margin: 25px 5px 10px 5px; padding-bottom: 5px; border-bottom: 2px solid #ccc; display: flex; align-items: center; }
-        .card { background: white; margin-bottom: 15px; padding: 15px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
-        .card h3 { margin: 0 0 10px 0; color: #333; }
-        .card p { margin: 5px 0; color: #666; font-size: 0.95rem; }
-        .tel-link { color: #0066cc; text-decoration: none; font-weight: bold; }
-        .btn { display: block; color: white; text-align: center; padding: 14px; text-decoration: none; margin-top: 15px; border-radius: 5px; font-weight: bold; border: none; width: 100%; font-size: 1rem; cursor: pointer; }
-        .loading { text-align: center; margin-top: 30px; color: #888; font-style: italic; }
+        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background: #f4f7f6; margin: 0; padding-bottom: 60px; }
+        .h { background: #0066cc; color: white; padding: 15px; text-align: center; position: sticky; top: 0; z-index: 100; box-shadow: 0 2px 8px rgba(0,0,0,0.2); display: flex; justify-content: center; align-items: center; }
+        .refresh-btn { position: absolute; right: 15px; background: rgba(255,255,255,0.2); border: none; color: white; padding: 8px 12px; border-radius: 4px; font-size: 0.8rem; cursor: pointer; }
+        .container { padding: 12px; max-width: 600px; margin: auto; }
+        
+        .section-header { font-size: 1rem; font-weight: bold; margin: 25px 0 12px 0; display: flex; align-items: center; text-transform: uppercase; letter-spacing: 1px; }
+        .dot { height: 12px; width: 12px; border-radius: 50%; display: inline-block; margin-right: 8px; }
+        
+        .card { background: white; margin-bottom: 15px; padding: 18px; border-radius: 12px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); transition: transform 0.2s; }
+        .card:active { transform: scale(0.98); }
+        .card h3 { margin: 0 0 8px 0; color: #2c3e50; font-size: 1.2rem; }
+        .card p { margin: 6px 0; color: #555; font-size: 0.9rem; line-height: 1.4; }
+        
+        .tel-link { color: #0066cc; text-decoration: none; font-weight: bold; border-bottom: 1px dashed #0066cc; }
+        .label { font-weight: bold; color: #888; text-transform: uppercase; font-size: 0.75rem; margin-right: 5px; }
+        
+        .btn { display: block; color: white; text-align: center; padding: 15px; text-decoration: none; margin-top: 15px; border-radius: 8px; font-weight: bold; border: none; width: 100%; font-size: 1rem; cursor: pointer; transition: opacity 0.2s; }
+        .btn:hover { opacity: 0.9; }
+        
+        .loading { text-align: center; padding: 40px; color: #999; font-style: italic; }
+        .error-msg { background: #fee; color: #c00; padding: 15px; border-radius: 8px; text-align: center; font-weight: bold; }
     </style>
 </head>
 <body>
 
-    <div class="h"><h2 style="margin:0;">Space TV Portal</h2></div>
+    <div class="h">
+        <h2 style="margin:0; font-size: 1.2rem;">Space TV Portal</h2>
+        <button class="refresh-btn" onclick="loadJobs()">🔄 Refresh</button>
+    </div>
 
     <div class="container">
-        <div class="section-title" style="color: #0066cc; border-color: #0066cc;">🔵 PENDING JOBS</div>
-        <div id="pendingList"><p class="loading">Fetching jobs...</p></div>
+        <div class="section-header" style="color: #0066cc;">
+            <span class="dot" style="background-color: #0066cc;"></span> PENDING JOBS
+        </div>
+        <div id="pendingList">
+            <p class="loading">📡 Connecting to database...</p>
+        </div>
 
-        <div class="section-title" style="color: #e67e22; border-color: #e67e22;">🟠 RESCHEDULED</div>
+        <div class="section-header" style="color: #e67e22; margin-top: 40px;">
+            <span class="dot" style="background-color: #e67e22;"></span> RESCHEDULED
+        </div>
         <div id="rescheduleList"></div>
     </div>
 
     <script>
         async function startJob(id, name, tel, loc, prob) {
-            fetch(`/start-job?rowId=${id}`);
-            window.location.href = `/work-job?rowId=${id}&name=${name}&tel=${tel}&loc=${loc}&prob=${prob}`;
+            try {
+                // Silently update status to "In Progress"
+                fetch(`/start-job?rowId=${id}`);
+                // Move to the work page
+                window.location.href = `/work-job?rowId=${id}&name=${name}&tel=${tel}&loc=${loc}&prob=${prob}`;
+            } catch (err) {
+                alert("Connection failed. Try again.");
+            }
         }
 
         function createCard(j, color) {
             return `
-                <div class="card" style="border-left: 6px solid ${color}">
-                    <h3>${j.customer}</h3>
-                    <p><strong>Tel:</strong> <a href="tel:${j.tel}" class="tel-link">${j.tel}</a></p>
-                    <p><strong>Loc:</strong> ${j.loc || 'No Location'}</p>
-                    <p><strong>Type:</strong> ${j.type}</p>
-                    <p><strong>Prob:</strong> <i>${j.prob || 'Standard Installation'}</i></p>
-                    <button onclick="startJob('${j.rowId}', '${encodeURIComponent(j.customer)}', '${encodeURIComponent(j.tel)}', '${encodeURIComponent(j.loc)}', '${encodeURIComponent(j.prob)}')" class="btn" style="background:${color}">START JOB</button>
+                <div class="card" style="border-top: 4px solid ${color}">
+                    <h3>${j.customer || 'Unnamed Customer'}</h3>
+                    <p><span class="label">TEL:</span> <a href="tel:${j.tel}" class="tel-link">${j.tel || 'No Number'}</a></p>
+                    <p><span class="label">LOC:</span> ${j.loc || 'Location not set'}</p>
+                    <p><span class="label">TYPE:</span> ${j.type || 'Standard'}</p>
+                    <p><span class="label">PROB:</span> <i>${j.prob || 'Full Installation'}</i></p>
+                    <button onclick="startJob('${j.rowId}', '${encodeURIComponent(j.customer)}', '${encodeURIComponent(j.tel)}', '${encodeURIComponent(j.loc)}', '${encodeURIComponent(j.prob)}')" 
+                            class="btn" 
+                            style="background:${color}">
+                        START JOB
+                    </button>
                 </div>`;
         }
 
         async function loadJobs() {
+            const pList = document.getElementById('pendingList');
+            const rList = document.getElementById('rescheduleList');
+
             try {
                 const res = await fetch('/api/jobs');
                 const data = await res.json();
 
-                const pList = document.getElementById('pendingList');
-                const rList = document.getElementById('rescheduleList');
+                // Safety: If the server returns a single array instead of object
+                const pending = data.pending || (Array.isArray(data) ? data : []);
+                const rescheduled = data.rescheduled || [];
 
                 // Clear lists
-                pList.innerHTML = data.pending.length ? '' : '<p class="loading">No pending jobs.</p>';
-                rList.innerHTML = data.rescheduled.length ? '' : '<p class="loading" style="font-size:0.8rem;">No rescheduled jobs.</p>';
+                pList.innerHTML = pending.length ? '' : '<p class="loading">✅ No pending jobs found.</p>';
+                rList.innerHTML = rescheduled.length ? '' : '<p class="loading" style="font-size:0.8rem;">No rescheduled jobs.</p>';
 
                 // Add Pending Cards
-                data.pending.forEach(j => {
+                pending.forEach(j => {
                     pList.insertAdjacentHTML('beforeend', createCard(j, "#0066cc"));
                 });
 
                 // Add Rescheduled Cards
-                data.rescheduled.forEach(j => {
+                rescheduled.forEach(j => {
                     rList.insertAdjacentHTML('beforeend', createCard(j, "#e67e22"));
                 });
 
             } catch (err) {
-                document.getElementById('pendingList').innerHTML = '<p class="loading" style="color:red;">Error connecting to server.</p>';
+                console.error("Dashboard Render Error:", err);
+                pList.innerHTML = '<div class="error-msg">⚠️ Connection Error. Please check your internet or refresh the page.</div>';
             }
         }
 
+        // Auto-load when page opens
         loadJobs();
     </script>
 </body>
