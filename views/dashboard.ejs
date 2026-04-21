@@ -2,40 +2,78 @@
 <html>
 <head>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Space TV Portal</title>
     <style>
-        body { font-family: sans-serif; background: #eee; margin: 0; }
-        .h { background: #0066cc; color: white; padding: 15px; text-align: center; }
-        .card { background: white; margin: 10px; padding: 15px; border-radius: 5px; border-left: 5px solid #0066cc; }
-        .btn { display: block; background: #0066cc; color: white; text-align: center; padding: 12px; text-decoration: none; margin-top: 10px; border-radius: 5px; font-weight: bold; border:none; width:100%; cursor:pointer;}
-        a.tel-link { color: #0066cc; text-decoration: none; font-weight: bold; }
+        body { font-family: sans-serif; background: #eee; margin: 0; padding-bottom: 50px; }
+        .h { background: #0066cc; color: white; padding: 15px; text-align: center; position: sticky; top: 0; z-index: 100; box-shadow: 0 2px 5px rgba(0,0,0,0.2); }
+        .container { padding: 10px; }
+        .section-title { font-size: 1.1rem; font-weight: bold; margin: 25px 5px 10px 5px; padding-bottom: 5px; border-bottom: 2px solid #ccc; display: flex; align-items: center; }
+        .card { background: white; margin-bottom: 15px; padding: 15px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+        .card h3 { margin: 0 0 10px 0; color: #333; }
+        .card p { margin: 5px 0; color: #666; font-size: 0.95rem; }
+        .tel-link { color: #0066cc; text-decoration: none; font-weight: bold; }
+        .btn { display: block; color: white; text-align: center; padding: 14px; text-decoration: none; margin-top: 15px; border-radius: 5px; font-weight: bold; border: none; width: 100%; font-size: 1rem; cursor: pointer; }
+        .loading { text-align: center; margin-top: 30px; color: #888; font-style: italic; }
     </style>
 </head>
 <body>
-    <div class="h"><h2>Space TV Pending</h2></div>
-    <div id="list"></div>
+
+    <div class="h"><h2 style="margin:0;">Space TV Portal</h2></div>
+
+    <div class="container">
+        <div class="section-title" style="color: #0066cc; border-color: #0066cc;">🔵 PENDING JOBS</div>
+        <div id="pendingList"><p class="loading">Fetching jobs...</p></div>
+
+        <div class="section-title" style="color: #e67e22; border-color: #e67e22;">🟠 RESCHEDULED</div>
+        <div id="rescheduleList"></div>
+    </div>
+
     <script>
         async function startJob(id, name, tel, loc, prob) {
-            await fetch(`/start-job?rowId=${id}`);
+            fetch(`/start-job?rowId=${id}`);
             window.location.href = `/work-job?rowId=${id}&name=${name}&tel=${tel}&loc=${loc}&prob=${prob}`;
         }
-        async function load() {
-            const res = await fetch('/api/jobs');
-            const jobs = await res.json();
-            const list = document.getElementById('list');
-            list.innerHTML = jobs.length ? '' : '<p style="text-align:center">No Pending Jobs</p>';
-        jobs.forEach(j => {
-                // We use j.loc and j.prob because that's what we named them in the Apps Script above
-                list.innerHTML += `<div class="card">
-                    <h3>${j.customer || 'No Name'}</h3>
-                    <p><strong>Tel:</strong> <a href="tel:${j.tel}" class="tel-link">${j.tel || 'No Number'}</a></p>
+
+        function createCard(j, color) {
+            return `
+                <div class="card" style="border-left: 6px solid ${color}">
+                    <h3>${j.customer}</h3>
+                    <p><strong>Tel:</strong> <a href="tel:${j.tel}" class="tel-link">${j.tel}</a></p>
                     <p><strong>Loc:</strong> ${j.loc || 'No Location'}</p>
-                    <p><strong>Type:</strong> ${j.type || 'N/A'}</p>
-                    <p><strong>Problem:</strong> <i>${j.prob || 'No Problem Stated'}</i></p>
-                    <button onclick="startJob('${j.rowId}', '${encodeURIComponent(j.customer)}', '${encodeURIComponent(j.tel)}', '${encodeURIComponent(j.loc)}', '${encodeURIComponent(j.prob)}')" class="btn">START JOB</button>
+                    <p><strong>Type:</strong> ${j.type}</p>
+                    <p><strong>Prob:</strong> <i>${j.prob || 'Standard Installation'}</i></p>
+                    <button onclick="startJob('${j.rowId}', '${encodeURIComponent(j.customer)}', '${encodeURIComponent(j.tel)}', '${encodeURIComponent(j.loc)}', '${encodeURIComponent(j.prob)}')" class="btn" style="background:${color}">START JOB</button>
                 </div>`;
-            });
         }
-        load();
+
+        async function loadJobs() {
+            try {
+                const res = await fetch('/api/jobs');
+                const data = await res.json();
+
+                const pList = document.getElementById('pendingList');
+                const rList = document.getElementById('rescheduleList');
+
+                // Clear lists
+                pList.innerHTML = data.pending.length ? '' : '<p class="loading">No pending jobs.</p>';
+                rList.innerHTML = data.rescheduled.length ? '' : '<p class="loading" style="font-size:0.8rem;">No rescheduled jobs.</p>';
+
+                // Add Pending Cards
+                data.pending.forEach(j => {
+                    pList.insertAdjacentHTML('beforeend', createCard(j, "#0066cc"));
+                });
+
+                // Add Rescheduled Cards
+                data.rescheduled.forEach(j => {
+                    rList.insertAdjacentHTML('beforeend', createCard(j, "#e67e22"));
+                });
+
+            } catch (err) {
+                document.getElementById('pendingList').innerHTML = '<p class="loading" style="color:red;">Error connecting to server.</p>';
+            }
+        }
+
+        loadJobs();
     </script>
 </body>
 </html>
