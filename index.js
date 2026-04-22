@@ -2,7 +2,7 @@ const express = require('express');
 const axios = require('axios');
 const app = express();
 
-const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxgjAs_UGmLhpS1Dhm1zo6clqXh6T-WhTmZvgZ68dE0sz5WJFBKIBrZ8YpJwbmUOJk/exec";
+const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyoEWFTaHij5sLx5w1AU-dyFhi8hYB6Bd8kwf2kojxmNuvj4PLx7m4IiiCRMVFRJqY/exec";
 
 app.set('view engine', 'ejs');
 app.use(express.static('public'));
