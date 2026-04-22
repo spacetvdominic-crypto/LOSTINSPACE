@@ -4,19 +4,20 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Space TV Portal</title>
     <style>
-        body { font-family: sans-serif; background: #f4f7f6; margin: 0; padding-bottom: 60px; display: none; } /* Hidden by default for security */
+        body { font-family: sans-serif; background: #f4f7f6; margin: 0; padding-bottom: 60px; display: none; }
         .h { background: #0066cc; color: white; padding: 15px; text-align: center; position: sticky; top: 0; z-index: 100; display: flex; justify-content: center; align-items: center; }
         .logout-btn { position: absolute; left: 15px; background: rgba(255,255,255,0.2); border: 1px solid white; color: white; padding: 5px 10px; border-radius: 4px; font-size: 0.7rem; cursor: pointer; }
         .refresh-btn { position: absolute; right: 15px; background: none; border: none; color: white; font-size: 1.2rem; cursor: pointer; }
         .container { padding: 12px; max-width: 600px; margin: auto; }
         .section-header { font-size: 1rem; font-weight: bold; margin: 25px 0 12px 0; display: flex; align-items: center; }
         .dot { height: 10px; width: 10px; border-radius: 50%; display: inline-block; margin-right: 8px; }
-        .card { background: white; margin-bottom: 15px; padding: 18px; border-radius: 12px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); border-top: 4px solid #ccc; }
+        .card { background: white; margin-bottom: 15px; padding: 18px; border-radius: 12px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); border-top: 4px solid #ccc; position: relative; }
         .card h3 { margin: 0 0 8px 0; color: #333; }
         .card p { margin: 5px 0; color: #666; font-size: 0.9rem; }
         .tel-link { color: #0066cc; text-decoration: none; font-weight: bold; }
         .btn { display: block; color: white; text-align: center; padding: 15px; text-decoration: none; margin-top: 15px; border-radius: 8px; font-weight: bold; border: none; width: 100%; font-size: 1rem; cursor: pointer; }
         .loading { text-align: center; padding: 40px; color: #999; }
+        .cancel-tag { position: absolute; top: 15px; right: 15px; background: #e74c3c; color: white; font-size: 0.6rem; padding: 4px 8px; border-radius: 4px; font-weight: bold; }
     </style>
 </head>
 <body>
@@ -28,19 +29,18 @@
     </div>
 
     <div class="container">
-        <div class="section-header" style="color: #0066cc;"><span class="dot" style="background:#0066cc;"></span> PENDING</div>
-        <div id="pendingList"><p class="loading">Loading...</p></div>
+        <div class="section-header" style="color: #0066cc;"><span class="dot" style="background:#0066cc;"></span> PENDING / ON HOLD</div>
+        <div id="pendingList"><p class="loading">Fetching jobs...</p></div>
 
         <div class="section-header" style="color: #e67e22; margin-top: 30px;"><span class="dot" style="background:#e67e22;"></span> RESCHEDULED</div>
         <div id="rescheduleList"></div>
     </div>
 
     <script>
-        // --- 1. SECURITY GATE ---
+        // SECURITY CHECK
         if (localStorage.getItem("isLoggedIn") !== "true") {
             window.location.href = "/";
         } else {
-            // Only show the page if logged in
             document.body.style.display = "block";
         }
 
@@ -55,14 +55,22 @@
         }
 
         function createCard(j, color) {
+            const isCancel = j.status === "Cancel";
+            const btnBg = isCancel ? "#bdc3c7" : color;
+            const btnText = isCancel ? "CANCELLED (WAITING 24H)" : "START JOB";
+            const btnAttr = isCancel ? "disabled style='opacity:0.7; cursor:not-allowed;'" : "";
+
             return `
-                <div class="card" style="border-top-color: ${color}">
+                <div class="card" style="border-top-color: ${isCancel ? '#bdc3c7' : color}">
+                    ${isCancel ? '<span class="cancel-tag">ON HOLD</span>' : ''}
                     <h3>${j.customer || 'Unnamed'}</h3>
                     <p><b>Tel:</b> <a href="tel:${j.tel}" class="tel-link">${j.tel || 'N/A'}</a></p>
                     <p><b>Loc:</b> ${j.loc || 'N/A'}</p>
                     <p><b>Issue:</b> <i>${j.prob || 'No details'}</i></p>
                     <button onclick="startJob('${j.rowId}', '${encodeURIComponent(j.customer)}', '${encodeURIComponent(j.tel)}', '${encodeURIComponent(j.loc)}', '${encodeURIComponent(j.prob)}')" 
-                            class="btn" style="background:${color}">START JOB</button>
+                            class="btn" ${btnAttr} style="background:${btnBg}">
+                        ${btnText}
+                    </button>
                 </div>`;
         }
 
@@ -83,7 +91,7 @@
                 rescheduled.forEach(j => rList.insertAdjacentHTML('beforeend', createCard(j, "#e67e22")));
 
             } catch (err) {
-                pList.innerHTML = '<p class="loading" style="color:red;">Error loading jobs.</p>';
+                pList.innerHTML = '<p class="loading" style="color:red;">Error connecting to server.</p>';
             }
         }
 
